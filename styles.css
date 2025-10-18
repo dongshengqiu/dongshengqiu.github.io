@@ -94,10 +94,7 @@ body {
 .hero-content {
     max-width: 1200px;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: center;
+    display: block;
 }
 
 .hero-title {
@@ -117,7 +114,7 @@ body {
 .hero-subtitle {
     font-size: 1.5rem;
     font-weight: 500;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
     opacity: 0.9;
 }
 
@@ -126,6 +123,19 @@ body {
     margin-bottom: 2rem;
     opacity: 0.8;
     line-height: 1.7;
+}
+
+.hero-bottom {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    /* 60% / 40% */
+    gap: 4rem;
+    align-items: center;
+}
+
+.hero-left {
+    display: flex;
+    flex-direction: column;
 }
 
 .hero-buttons {
