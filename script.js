@@ -172,6 +172,10 @@ const observer = new IntersectionObserver((entries) => {
 
 // Observe elements for animation
 document.addEventListener('DOMContentLoaded', () => {
+    const yearEl = document.getElementById('current-year');
+    if (yearEl) {
+        yearEl.textContent = new Date().getFullYear();
+    }
     const animateElements = document.querySelectorAll('.project-card, .stat, .about-text, .contact-info, .contact-form');
 
     animateElements.forEach(el => {
