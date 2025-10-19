@@ -201,6 +201,13 @@
                             <a href="tel:+12369961553">+1 (236) 996-1553</a>
                         </div>
                     </div>
+                    <div class="social-links">
+                        <a href="https://github.com/dongshengqiu" class="social-link">GitHub</a>
+                        <a href="https://www.instagram.com/dongshengqiuca/" class="social-link" rel="noopener"
+                            target="_blank">Instagram</a>
+                        <!-- <a href="https://www.xiaohongshu.com/user/profile/5f8f1ada0000000001008732"
+                            class="social-link">RedNote/Xiaohongshu</a> -->
+                    </div>
                 </div>
                 <form class="contact-form">
                     <div class="form-group">
@@ -233,6 +240,13 @@
     </footer>
 
     <script src="../script.js"></script>
+    <script>
+        // Localize section title for projects if needed
+        document.addEventListener('DOMContentLoaded', function () {
+            const title = document.querySelector('#projects .section-title');
+            if (title) title.setAttribute('data-i18n', '精选作品');
+        });
+    </script>
 </body>
 
 </html>

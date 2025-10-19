@@ -184,6 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(el);
     });
+
+    // Initialize Instagram-powered Projects section
+    initInstagramProjects();
 });
 
 // Add CSS for active nav link
@@ -217,3 +220,110 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// =============================
+// Instagram Integration (Projects)
+// =============================
+
+function getInstagramAccessTokenFromUrlOrStorage() {
+    try {
+        const url = new URL(window.location.href);
+        const tokenFromUrl = url.searchParams.get('ig_token');
+        if (tokenFromUrl) {
+            localStorage.setItem('ig_access_token', tokenFromUrl);
+            // Optional: clean URL to avoid leaving token in history
+            try {
+                url.searchParams.delete('ig_token');
+                window.history.replaceState({}, document.title, url.toString());
+            } catch (_) { /* no-op */ }
+            return tokenFromUrl;
+        }
+        const tokenFromStorage = localStorage.getItem('ig_access_token');
+        return tokenFromStorage || '';
+    } catch (_) {
+        return '';
+    }
+}
+
+async function fetchInstagramMedia(accessToken, limit = 50) {
+    const params = new URLSearchParams({
+        fields: 'id,caption,media_url,permalink,thumbnail_url,media_type,timestamp',
+        access_token: accessToken,
+        limit: String(limit)
+    });
+    const endpoint = `https://graph.instagram.com/me/media?${params.toString()}`;
+    const response = await fetch(endpoint, { mode: 'cors' });
+    if (!response.ok) {
+        throw new Error(`Instagram API error: ${response.status}`);
+    }
+    return await response.json();
+}
+
+function shuffleArray(array) {
+    const arr = array.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function truncate(text, maxLen) {
+    if (!text) return '';
+    return text.length > maxLen ? `${text.slice(0, maxLen - 1)}…` : text;
+}
+
+async function initInstagramProjects() {
+    const grid = document.querySelector('.projects .projects-grid');
+    if (!grid) return;
+
+    const existingHTML = grid.innerHTML; // fallback
+    const accessToken = getInstagramAccessTokenFromUrlOrStorage();
+    if (!accessToken) {
+        // No token provided; keep existing static projects
+        return;
+    }
+
+    // Decide how many items to show based on viewport
+    const desiredCount = window.matchMedia('(max-width: 768px)').matches ? 3 : 6;
+
+    try {
+        const data = await fetchInstagramMedia(accessToken, 50);
+        const items = Array.isArray(data?.data) ? data.data : [];
+        if (items.length === 0) return; // keep fallback
+
+        const randomized = shuffleArray(items)
+            .filter(item => item.media_type === 'IMAGE' || item.media_type === 'CAROUSEL_ALBUM' || item.media_type === 'VIDEO')
+            .slice(0, desiredCount);
+
+        if (randomized.length === 0) return; // keep fallback
+
+        const cardsHTML = randomized.map(item => {
+            const imageUrl = item.media_type === 'VIDEO' ? (item.thumbnail_url || item.media_url) : item.media_url;
+            const caption = truncate(item.caption || '', 120);
+            const permalink = item.permalink;
+            return `
+                <div class="project-card">
+                    <div class="project-image">
+                        <a href="${permalink}" target="_blank" rel="noopener" aria-label="View on Instagram">
+                            <img src="${imageUrl}" alt="Instagram post" loading="lazy">
+                        </a>
+                    </div>
+                    <div class="project-content">
+                        <h3>Instagram</h3>
+                        ${caption ? `<p>${caption}</p>` : ''}
+                        <div class="project-links">
+                            <a href="${permalink}" class="project-link" target="_blank" rel="noopener">View on Instagram</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        grid.innerHTML = cardsHTML;
+    } catch (err) {
+        // On any error, keep original static content
+        console.error('Failed to load Instagram media:', err);
+        grid.innerHTML = existingHTML;
+    }
+}
